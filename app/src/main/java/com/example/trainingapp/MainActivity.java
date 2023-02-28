@@ -32,7 +32,9 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
     private long startTimer;
     private TextView textView;
 
-    private Map<Location,Long> locationMap = new HashMap<>();;
+    private long index = 0;
+
+    private Map<Long,Location> locationMap = new HashMap<>();;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,6 +113,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         long elapsedTime = endTimer - startTimer;
         startTimer = endTimer;
         textView.setText("Latitude: " + latitude + " Longitude: " + longitude + " Time: " + elapsedTime / 1.0E09);
-        locationMap.put(location,elapsedTime);
+        locationMap.put(index++,location);
     }
 }

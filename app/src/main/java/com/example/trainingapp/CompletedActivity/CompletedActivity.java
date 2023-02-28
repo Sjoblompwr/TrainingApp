@@ -21,7 +21,7 @@ public class CompletedActivity extends AppCompatActivity {
 
         //Get the locationMap from the intent
         //This should later be in the form of a database fetch obviously and just take an id as input
-        Map<Location,Long> locationMap = (Map<Location, Long>) getIntent().getSerializableExtra("locationMap");
+        Map<Long,Location> locationMap = (Map<Long,Location>) getIntent().getSerializableExtra("locationMap");
 
         FragmentManager fragmentManager = getSupportFragmentManager();
 

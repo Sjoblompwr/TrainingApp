@@ -20,13 +20,15 @@ import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
+import java.sql.Array;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class MapsFragment extends Fragment {
 
-    private HashMap<Location,Long> locationMap = new HashMap<>();
+    private Map<Long,Location> locationMap = new HashMap<>();
 
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
 
@@ -41,7 +43,11 @@ public class MapsFragment extends Fragment {
          */
         @Override
         public void onMapReady(GoogleMap googleMap) {
-            ArrayList<Location> locations = new ArrayList<>(locationMap.keySet());
+            ArrayList<Location> locations = new ArrayList<>();
+            for(int i = 0; i < locationMap.size(); i++){
+                locations.add(locationMap.get((long)i));
+            }
+
             for (Location location : locations) {
                 LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
                 if(locations.indexOf(location) == 0){
@@ -69,7 +75,7 @@ public class MapsFragment extends Fragment {
                              @Nullable Bundle savedInstanceState) {
         Bundle bundle = getArguments();
         if (bundle != null) {
-            locationMap = (HashMap<Location, Long>) bundle.getSerializable("locationMap");
+            locationMap = (HashMap<Long,Location>) bundle.getSerializable("locationMap");
         }
 
         return inflater.inflate(R.layout.fragment_maps, container, false);
