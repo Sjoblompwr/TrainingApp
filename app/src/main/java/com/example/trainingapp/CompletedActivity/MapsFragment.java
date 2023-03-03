@@ -11,6 +11,9 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.example.trainingapp.DatabaseHelper;
+import com.example.trainingapp.Domain.Activity;
+import com.example.trainingapp.Domain.ActivityLatLong;
 import com.example.trainingapp.R;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,8 +31,7 @@ import java.util.Map;
 
 public class MapsFragment extends Fragment {
 
-    private Map<Long,Location> locationMap = new HashMap<>();
-
+    private ArrayList<ActivityLatLong> activity;
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         /**
@@ -43,47 +45,50 @@ public class MapsFragment extends Fragment {
          */
         @Override
         public void onMapReady(GoogleMap googleMap) {
-            ArrayList<Location> locations = new ArrayList<>();
-            for(int i = 0; i < locationMap.size(); i++){
-                locations.add(locationMap.get((long)i));
-            }
+            if(activity != null)
+                for (ActivityLatLong location : activity) {
+                    LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
+                    if(activity.indexOf(location) == 0){
+                        googleMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Sydney"));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                    }
+                    if(activity.indexOf(location) == activity.size()-1){
+                        googleMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Sydney"));
+                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                        break;
+                    }
 
-            for (Location location : locations) {
-                LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                if(locations.indexOf(location) == 0){
-                    googleMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Sydney"));
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
+                    LatLng latLng2 = new LatLng(activity.get(activity.indexOf(location)+1).getLatitude(), activity.get(activity.indexOf(location)+1).getLongitude());
+                    googleMap.addPolyline(new PolylineOptions().add(latLng,latLng2).width(5).color(Color.RED));
+
                 }
-                if(locations.indexOf(location) == locations.size()-1){
-                    googleMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Sydney"));
-                    googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
-                    break;
-                }
-
-                LatLng latLng2 = new LatLng(locations.get(locations.indexOf(location)+1).getLatitude(), locations.get(locations.indexOf(location)+1).getLongitude());
-                googleMap.addPolyline(new PolylineOptions().add(latLng,latLng2).width(5).color(Color.RED));
-
-            }
-
+            else
+                System.out.println("Activity is null");
         }
     };
+
+
+
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
                              @Nullable ViewGroup container,
                              @Nullable Bundle savedInstanceState) {
+
         Bundle bundle = getArguments();
         if (bundle != null) {
-            locationMap = (HashMap<Long,Location>) bundle.getSerializable("locationMap");
+            Long activityId = (Long) bundle.getSerializable("activityId");
+            DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
+            activity = databaseHelper.getActivityLocationByActivityId(activityId);
+            System.out.println(activityId);
         }
-
         return inflater.inflate(R.layout.fragment_maps, container, false);
     }
 
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
-        super.onViewCreated(view, savedInstanceState);
+
         SupportMapFragment mapFragment =
                 (SupportMapFragment) getChildFragmentManager().findFragmentById(R.id.map);
         if (mapFragment != null) {

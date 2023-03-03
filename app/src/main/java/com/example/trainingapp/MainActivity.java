@@ -55,7 +55,6 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Button launchButton = findViewById(R.id.completed_activity_button);
         launchButton.setOnClickListener(view -> {
             Intent intent = new Intent(MainActivity.this, CompletedActivity.class);
-            intent.putExtra("locationMap", (Serializable)locationMap);
             startActivity(intent);
         });
         locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
@@ -120,6 +119,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         double time = 0;
         ActivityType type = ActivityType.RUNNING;
         String description = "This is a test description";
+        ArrayList<ActivityLatLong> activityLatLongs = new ArrayList<>();
+
         Location previousLocation = null;
         for(Map.Entry<Long,Location> entry : locationMap.entrySet()){
             Location location = entry.getValue();
@@ -130,11 +131,14 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
                 time += location.getTime() - previousLocation.getTime();
             }
             previousLocation = location;
-            databaseHelper.addActivityLocationData(new ActivityLatLong(1L,latitude,longitude));
+            activityLatLongs.add(new ActivityLatLong(latitude,longitude));
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
             Activity activity = new Activity("Activity 1",LocalDateTime.now(),distance,time,type,description);
             databaseHelper.addActivityData(activity);
+        }
+        for(ActivityLatLong activityLatLong : activityLatLongs){
+            databaseHelper.addActivityLocationData(activityLatLong);
         }
     }
 
