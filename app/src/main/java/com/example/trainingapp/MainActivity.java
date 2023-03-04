@@ -14,7 +14,11 @@ import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.view.View;
+import android.widget.Adapter;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.EditText;
+import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -24,6 +28,7 @@ import com.example.trainingapp.Domain.ActivityLatLong;
 import com.example.trainingapp.Domain.ActivityType;
 
 import java.io.Serializable;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -33,22 +38,29 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private static final int REQUEST_LOCATION_PERMISSION = 1;
     private LocationManager locationManager;
-    private long endTimer;
-    private long startTimer;
-    private TextView textView;
 
     private long index = 0;
 
-    private Map<Long,Location> locationMap = new HashMap<>();;
+    private Map<Long,Location> locationMap = new HashMap<>();
 
     private DatabaseHelper databaseHelper;
+
+    private ActivityType activityType;
+    private String activityName;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        textView = findViewById(R.id.textView);
+        /*
+            Sets the spinner to display the ActivityType enum values
+         */
+        Spinner spinner = findViewById(R.id.activity_type);
+        ArrayAdapter<ActivityType> adapter =
+                new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, ActivityType.values());
+        spinner.setAdapter(adapter);
+
         /*
             Sets onClickListener for the button that launches the CompletedActivity
          */
@@ -64,19 +76,16 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
          */
         Button newActivityButton = findViewById(R.id.new_activity_button);
 
-        newActivityButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                if(newActivityButton.getText().equals("Start Activity")){
-                    newActivityButton.setText("Stop Activity");
-                    startTracking();
-                }
-                else{
-                    newActivityButton.setText("Start Activity");
-                    stopTracking();
-                }
-
+        newActivityButton.setOnClickListener(view -> {
+            if(newActivityButton.getText().equals("Start Activity")){
+                newActivityButton.setText("Stop Activity");
+                startTracking();
             }
+            else{
+                newActivityButton.setText("Start Activity");
+                stopTracking();
+            }
+
         });
 
         databaseHelper = new DatabaseHelper(this);
@@ -84,16 +93,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
-    /*
-    Start the tracking of the user's location
+    /**
+     * Checks for permission and starts tracking the user's location
      */
     public void startTracking(){
 
-
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
-        } else
+        } else {
+            setActivityValues();
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+        }
+
     }
 
     @Override
@@ -109,15 +120,21 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             }
         }
     }
+
+    /**
+     * Stops the tracking of the user's location
+     */
     public void stopTracking(){
         locationManager.removeUpdates(this);
         updateDatabase();
     }
 
+    /**
+     * Updates the database with the new activity and activityLatLongs
+     */
     public void updateDatabase(){
         double distance = 0;
         double time = 0;
-        ActivityType type = ActivityType.RUNNING;
         String description = "This is a test description";
         ArrayList<ActivityLatLong> activityLatLongs = new ArrayList<>();
 
@@ -134,7 +151,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             activityLatLongs.add(new ActivityLatLong(latitude,longitude));
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Activity activity = new Activity("Activity 1",LocalDateTime.now(),distance,time,type,description);
+            Activity activity = new Activity(activityName,LocalDateTime.now(),distance,time,activityType,description);
             databaseHelper.addActivityData(activity);
         }
         for(ActivityLatLong activityLatLong : activityLatLongs){
@@ -145,12 +162,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     @Override
     public void onLocationChanged(@NonNull Location location) {
-        double latitude = location.getLatitude();
-        double longitude = location.getLongitude();
-        endTimer = System.nanoTime();
-        long elapsedTime = endTimer - startTimer;
-        startTimer = endTimer;
-        textView.setText("Latitude: " + latitude + " Longitude: " + longitude + " Time: " + elapsedTime / 1.0E09);
-        locationMap.put(index++,location);
+      locationMap.put(index++,location);
+    }
+
+    /**
+     * Sets the values of the activityType and activityDescription
+     */
+    private void setActivityValues(){
+        activityType = (ActivityType) ((Spinner) findViewById(R.id.activity_type)).getSelectedItem();
+        if(((EditText) findViewById(R.id.activity_name)).getText() == null)
+            activityName = ((EditText) findViewById(R.id.activity_name)).getText().toString();
+        else
+            activityName = LocalDate.now().toString();
+
     }
 }

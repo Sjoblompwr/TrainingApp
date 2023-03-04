@@ -20,6 +20,7 @@ import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
@@ -45,23 +46,29 @@ public class MapsFragment extends Fragment {
          */
         @Override
         public void onMapReady(GoogleMap googleMap) {
-            if(activity != null)
+            if(activity != null) {
+                LatLngBounds.Builder builder = new LatLngBounds.Builder();
+
                 for (ActivityLatLong location : activity) {
                     LatLng latLng = new LatLng(location.getLatitude(), location.getLongitude());
-                    if(activity.indexOf(location) == 0){
+                    //Add start marker
+                    if (activity.indexOf(location) == 0) {
                         googleMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Sydney"));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                     }
-                    if(activity.indexOf(location) == activity.size()-1){
+                    //Add end marker & end
+                    if (activity.indexOf(location) == activity.size() - 1) {
                         googleMap.addMarker(new MarkerOptions().position(latLng).title("Marker in Sydney"));
-                        googleMap.moveCamera(CameraUpdateFactory.newLatLng(latLng));
                         break;
                     }
-
-                    LatLng latLng2 = new LatLng(activity.get(activity.indexOf(location)+1).getLatitude(), activity.get(activity.indexOf(location)+1).getLongitude());
-                    googleMap.addPolyline(new PolylineOptions().add(latLng,latLng2).width(5).color(Color.RED));
-
+                    LatLng latLng2 = new LatLng(activity.get(activity.indexOf(location) + 1).getLatitude(), activity.get(activity.indexOf(location) + 1).getLongitude());
+                    googleMap.addPolyline(new PolylineOptions().add(latLng, latLng2).width(5).color(Color.RED));
+                    builder.include(latLng);
                 }
+
+                LatLngBounds bounds = builder.build();
+                int padding = 100;
+                googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
+            }
             else
                 System.out.println("Activity is null");
         }
