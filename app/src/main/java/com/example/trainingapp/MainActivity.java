@@ -170,10 +170,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
      */
     private void setActivityValues(){
         activityType = (ActivityType) ((Spinner) findViewById(R.id.activity_type)).getSelectedItem();
-        if(((EditText) findViewById(R.id.activity_name)).getText() == null)
-            activityName = ((EditText) findViewById(R.id.activity_name)).getText().toString();
-        else
+
+        if(((EditText) findViewById(R.id.activity_name)).getText().toString().equals(""))
             activityName = LocalDate.now().toString();
+        else
+            activityName = ((EditText) findViewById(R.id.activity_name)).getText().toString();
 
     }
 }

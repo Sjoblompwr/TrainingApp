@@ -10,6 +10,7 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -24,6 +25,7 @@ import java.util.Map;
 
 public class CompletedActivity extends AppCompatActivity {
 
+    private Long checkedItem;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -52,15 +54,39 @@ public class CompletedActivity extends AppCompatActivity {
             activityNames.add(activity.getName());
         }
 
-        //Dialog
-        final Dialog dialog = new Dialog(this);
-        dialog.setContentView(R.layout.dialog_window);
-
         // create an ArrayAdapter and set it to the ListView
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, activityNames);
         listView.setAdapter(adapter);
 
+        //Dialog
+        final Dialog dialog = new Dialog(this);
+        dialog.setContentView(R.layout.dialog_window);
+        Button deleteButton = dialog.findViewById(R.id.delete_button);
+        Button modifyButton = dialog.findViewById(R.id.modify_button);
+
+        deleteButton.setOnClickListener(v -> {
+            DatabaseHelper db = new DatabaseHelper(this);
+            db.deleteActivity(activities.get(Math.toIntExact(checkedItem)).getId());
+            dialog.dismiss();
+            this.recreate();
+        });
+
+        modifyButton.setOnClickListener(v -> {
+            ModifyActivityFragment modifyActivityFragment = new ModifyActivityFragment();
+            Bundle bundle = new Bundle();
+            bundle.putSerializable("activityId", activities.get(Math.toIntExact(checkedItem)).getId());
+            modifyActivityFragment.setArguments(bundle);
+            FragmentTransaction transaction = fragmentManager.beginTransaction();
+            transaction.replace(R.id.completed_activity_linearLayout, modifyActivityFragment);
+            transaction.commit();
+            dialog.dismiss();
+        });
+
+
+
+
         listView.setOnItemLongClickListener((parent, view, position, id) -> {
+            checkedItem = id;
             dialog.show();
             return true;
         });

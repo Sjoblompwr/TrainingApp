@@ -135,4 +135,21 @@ public class DatabaseHelper extends SQLiteOpenHelper {
          return activities;
    }
 
+    public void deleteActivity(Long id) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        sqLiteDatabase.delete("activities", "id = " + id, null);
+        sqLiteDatabase.delete("activityLatLong", "activityId = " + id, null);
+    }
+
+    public void updateActivity(Activity activity) {
+        SQLiteDatabase sqLiteDatabase = getWritableDatabase();
+        ContentValues values = new ContentValues();
+        values.put("name", activity.getName());
+        values.put("date", activity.getDate());
+        values.put("distance", activity.getDistance());
+        values.put("time", activity.getTime());
+        values.put("type", activity.getType().toString());
+        values.put("description", activity.getDescription());
+        sqLiteDatabase.update("activities", values, "id = " + activity.getId(), null);
+    }
 }
