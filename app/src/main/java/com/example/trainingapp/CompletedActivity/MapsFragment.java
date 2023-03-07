@@ -1,20 +1,18 @@
 package com.example.trainingapp.CompletedActivity;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.fragment.app.Fragment;
-
 import android.graphics.Color;
-import android.location.Location;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
-import com.example.trainingapp.DatabaseHelper;
-import com.example.trainingapp.Domain.Activity;
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
+
 import com.example.trainingapp.Domain.ActivityLatLong;
 import com.example.trainingapp.R;
+import com.example.trainingapp.Resources.ActivityResource;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.OnMapReadyCallback;
@@ -24,15 +22,24 @@ import com.google.android.gms.maps.model.LatLngBounds;
 import com.google.android.gms.maps.model.MarkerOptions;
 import com.google.android.gms.maps.model.PolylineOptions;
 
-import java.sql.Array;
 import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
+/**
+ * Map fragment for completed activity (or any activity)
+ * Displays a Google map
+ *
+ * @author David Sjöblom
+ */
 public class MapsFragment extends Fragment {
 
     private ArrayList<ActivityLatLong> activity;
+
+    public MapsFragment() {
+        // Required empty public constructor
+    }
+
+
+    private ActivityResource activityResource;
     private OnMapReadyCallback callback = new OnMapReadyCallback() {
 
         /**
@@ -43,10 +50,13 @@ public class MapsFragment extends Fragment {
          * If Google Play services is not installed on the device, the user will be prompted to
          * install it inside the SupportMapFragment. This method will only be triggered once the
          * user has installed Google Play services and returned to the app.
+         *
+         * When activity is choosen, the map will zoom in on the activity,
+         * draw a line between the points and add markers at the start and end.
          */
         @Override
         public void onMapReady(GoogleMap googleMap) {
-            if(activity != null) {
+            if (activity != null) {
                 LatLngBounds.Builder builder = new LatLngBounds.Builder();
 
                 for (ActivityLatLong location : activity) {
@@ -69,14 +79,23 @@ public class MapsFragment extends Fragment {
                 int padding = 100;
                 googleMap.moveCamera(CameraUpdateFactory.newLatLngBounds(bounds, padding));
             }
-            else
-                System.out.println("Activity is null");
         }
     };
 
 
-
-
+    /**
+     * If bundle is not null, get the activityId from the bundle and get the activity from the database.
+     *
+     * @param inflater           The LayoutInflater object that can be used to inflate
+     *                           any views in the fragment,
+     * @param container          If non-null, this is the parent view that the fragment's
+     *                           UI should be attached to.  The fragment should not add the view itself,
+     *                           but this can be used to generate the LayoutParams of the view.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
+     * @return
+     * @author David Sjöblom
+     */
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater,
@@ -86,13 +105,18 @@ public class MapsFragment extends Fragment {
         Bundle bundle = getArguments();
         if (bundle != null) {
             Long activityId = (Long) bundle.getSerializable("activityId");
-            DatabaseHelper databaseHelper = new DatabaseHelper(getContext());
-            activity = databaseHelper.getActivityLocationByActivityId(activityId);
-            System.out.println(activityId);
+            activityResource = new ActivityResource(getContext());
+            activity = activityResource.getActivityLocationByActivityId(activityId);
         }
         return inflater.inflate(R.layout.fragment_maps, container, false);
     }
 
+    /**
+     * @param view               The View returned by {@link #onCreateView(LayoutInflater, ViewGroup, Bundle)}.
+     * @param savedInstanceState If non-null, this fragment is being re-constructed
+     *                           from a previous saved state as given here.
+     * @author David Sjöblom
+     */
     @Override
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
 

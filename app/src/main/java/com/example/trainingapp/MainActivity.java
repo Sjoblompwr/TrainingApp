@@ -3,6 +3,7 @@ package com.example.trainingapp;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+
 import android.Manifest;
 
 import android.content.Context;
@@ -18,6 +19,7 @@ import android.widget.Adapter;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +28,7 @@ import com.example.trainingapp.CompletedActivity.CompletedActivity;
 import com.example.trainingapp.Domain.Activity;
 import com.example.trainingapp.Domain.ActivityLatLong;
 import com.example.trainingapp.Domain.ActivityType;
+import com.example.trainingapp.Resources.ActivityResource;
 
 import java.io.Serializable;
 import java.time.LocalDate;
@@ -34,6 +37,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Map;
 
+/**
+ * The main activity of the application, where the user can start a new activity.
+ *
+ * @author David Sjöblom
+ */
 public class MainActivity extends AppCompatActivity implements LocationListener {
 
     private static final int REQUEST_LOCATION_PERMISSION = 1;
@@ -41,17 +49,30 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     private long index = 0;
 
-    private Map<Long,Location> locationMap = new HashMap<>();
+    private Map<Long, Location> locationMap = new HashMap<>();
 
-    private DatabaseHelper databaseHelper;
+    private ActivityResource activityResource = new ActivityResource(this);
 
     private ActivityType activityType;
     private String activityName;
 
+
+    ImageView imageViewDot;
+
+    /**
+     * Initializes the activity and its components.
+     *
+     * @author David Sjöblom
+     */
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        /*
+            Sets the imageViewDot to the green and red dot images
+         */
+        imageViewDot = findViewById(R.id.red_dot);
 
         /*
             Sets the spinner to display the ActivityType enum values
@@ -77,26 +98,25 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         Button newActivityButton = findViewById(R.id.new_activity_button);
 
         newActivityButton.setOnClickListener(view -> {
-            if(newActivityButton.getText().equals("Start Activity")){
+            if (newActivityButton.getText().equals("Start Activity")) {
                 newActivityButton.setText("Stop Activity");
                 startTracking();
-            }
-            else{
+            } else {
                 newActivityButton.setText("Start Activity");
                 stopTracking();
             }
 
         });
 
-        databaseHelper = new DatabaseHelper(this);
-
 
     }
 
     /**
      * Checks for permission and starts tracking the user's location
+     *
+     * @author David Sjöblom
      */
-    public void startTracking(){
+    public void startTracking() {
 
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
@@ -107,6 +127,18 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     }
 
+    /**
+     * If permission is accepted, starts tracking the user's location
+     * If permission is denied, shows a message and disables location tracking
+     *
+     * @param requestCode  The request code passed in {@link #requestPermissions(
+     *android.app.Activity, String[], int)}
+     * @param permissions  The requested permissions. Never null.
+     * @param grantResults The grant results for the corresponding permissions
+     *                     which is either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
+     *                     or {@link android.content.pm.PackageManager#PERMISSION_DENIED}. Never null.
+     * @author David Sjöblom
+     */
     @Override
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
@@ -123,55 +155,71 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
 
     /**
      * Stops the tracking of the user's location
+     *
+     * @author David Sjöblom
      */
-    public void stopTracking(){
+    public void stopTracking() {
+        imageViewDot.setImageResource(R.drawable.red_dot);
         locationManager.removeUpdates(this);
         updateDatabase();
     }
 
     /**
      * Updates the database with the new activity and activityLatLongs
+     *
+     * @author David Sjöblom
      */
-    public void updateDatabase(){
+    public void updateDatabase() {
         double distance = 0;
         double time = 0;
         String description = "This is a test description";
         ArrayList<ActivityLatLong> activityLatLongs = new ArrayList<>();
 
         Location previousLocation = null;
-        for(Map.Entry<Long,Location> entry : locationMap.entrySet()){
+        for (Map.Entry<Long, Location> entry : locationMap.entrySet()) {
             Location location = entry.getValue();
             double latitude = location.getLatitude();
             double longitude = location.getLongitude();
-            if(previousLocation != null){
+            if (previousLocation != null) {
                 distance += location.distanceTo(previousLocation);
                 time += location.getTime() - previousLocation.getTime();
             }
             previousLocation = location;
-            activityLatLongs.add(new ActivityLatLong(latitude,longitude));
+            activityLatLongs.add(new ActivityLatLong(latitude, longitude));
         }
         if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Activity activity = new Activity(activityName,LocalDateTime.now(),distance,time,activityType,description);
-            databaseHelper.addActivityData(activity);
+            Activity activity = new Activity(activityName, LocalDateTime.now(), distance, time, activityType, description);
+            activityResource.addActivityData(activity);
         }
-        for(ActivityLatLong activityLatLong : activityLatLongs){
-            databaseHelper.addActivityLocationData(activityLatLong);
+        for (ActivityLatLong activityLatLong : activityLatLongs) {
+            activityResource.addActivityLocationData(activityLatLong);
         }
     }
 
 
+    /**
+     * Saves the new location and sets the imageViewDot to the green dot
+     *
+     * @param location the updated location
+     * @author David Sjöblom
+     */
     @Override
     public void onLocationChanged(@NonNull Location location) {
-      locationMap.put(index++,location);
+        locationMap.put(index++, location);
+        if (index >= 1) {
+            imageViewDot.setImageResource(R.drawable.green_dot);
+        }
     }
 
     /**
      * Sets the values of the activityType and activityDescription
+     *
+     * @author David Sjöblom
      */
-    private void setActivityValues(){
+    private void setActivityValues() {
         activityType = (ActivityType) ((Spinner) findViewById(R.id.activity_type)).getSelectedItem();
 
-        if(((EditText) findViewById(R.id.activity_name)).getText().toString().equals(""))
+        if (((EditText) findViewById(R.id.activity_name)).getText().toString().equals(""))
             activityName = LocalDate.now().toString();
         else
             activityName = ((EditText) findViewById(R.id.activity_name)).getText().toString();

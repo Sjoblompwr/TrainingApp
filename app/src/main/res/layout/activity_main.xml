@@ -37,6 +37,12 @@
                 app:layout_constraintStart_toStartOf="parent"
                 app:layout_constraintTop_toBottomOf="@+id/completed_activity_button"
                 app:layout_constraintVertical_bias="0.079" />
+
+            <ImageView
+                android:id="@+id/red_dot"
+                android:layout_width="16dp"
+                android:layout_height="16dp"
+                android:src="@drawable/red_dot"/>
         </GridLayout>
 
         <GridLayout

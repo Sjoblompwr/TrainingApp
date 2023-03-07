@@ -1,10 +1,17 @@
 package com.example.trainingapp.Domain;
 
-public class ActivityLatLong{
+
+/**
+ * ActivityLatLong class, the domain class for the activityLatLong table in the database.
+ *
+ * @author David Sjöblom
+ */
+public class ActivityLatLong {
 
     private double latitude;
     private double longitude;
-    public ActivityLatLong( double latitude, double longitude) {
+
+    public ActivityLatLong(double latitude, double longitude) {
         this.latitude = latitude;
         this.longitude = longitude;
     }

@@ -2,6 +2,11 @@ package com.example.trainingapp.Domain;
 
 import java.time.LocalDateTime;
 
+/**
+ * Activity class, the domain class for the activities table in the database.
+ *
+ * @author David Sjöblom
+ */
 public class Activity {
 
     private Long id;
@@ -22,6 +27,7 @@ public class Activity {
         this.type = type;
         this.description = description;
     }
+
     public Activity(String name, LocalDateTime date, double distance, double time, ActivityType type, String description) {
         this.name = name;
         this.date = date;
@@ -35,6 +41,7 @@ public class Activity {
     public Long getId() {
         return id;
     }
+
     public String getName() {
         return name;
     }
