@@ -187,10 +187,8 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
             previousLocation = location;
             activityLatLongs.add(new ActivityLatLong(latitude, longitude));
         }
-        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.O) {
-            Activity activity = new Activity(activityName, LocalDateTime.now(), distance, time, activityType, description);
-            activityResource.addActivityData(activity);
-        }
+        Activity activity = new Activity(activityName, LocalDateTime.now(), distance, time, activityType, description);
+        activityResource.addActivityData(activity);
         for (ActivityLatLong activityLatLong : activityLatLongs) {
             activityResource.addActivityLocationData(activityLatLong);
         }
@@ -209,6 +207,11 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
         if (index >= 1) {
             imageViewDot.setImageResource(R.drawable.green_dot);
         }
+    }
+    @Override
+    public void onStatusChanged(String provider, int status, Bundle extras) {
+        //Older versions crashed without this method
+        System.out.println("Status changed");
     }
 
     /**
