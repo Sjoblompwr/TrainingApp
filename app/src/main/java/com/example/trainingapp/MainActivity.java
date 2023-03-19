@@ -117,12 +117,12 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
      * @author David Sjöblom
      */
     public void startTracking() {
-
+        int oneSecond = 1000;
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, REQUEST_LOCATION_PERMISSION);
         } else {
             setActivityValues();
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 0, 0, this);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, oneSecond, 0, this);
         }
 
     }
@@ -131,8 +131,7 @@ public class MainActivity extends AppCompatActivity implements LocationListener 
      * If permission is accepted, starts tracking the user's location
      * If permission is denied, shows a message and disables location tracking
      *
-     * @param requestCode  The request code passed in {@link #requestPermissions(
-     *android.app.Activity, String[], int)}
+     * @param requestCode  The request code passed in
      * @param permissions  The requested permissions. Never null.
      * @param grantResults The grant results for the corresponding permissions
      *                     which is either {@link android.content.pm.PackageManager#PERMISSION_GRANTED}
